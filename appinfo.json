@@ -14,7 +14,7 @@
         "configurable"
     ],
     "companyName": "Nexworx",
-    "longName": "De Lijn (test)",
+    "longName": "De Lijn",
     "projectType": "native",
     "resources": {
         "media": [
@@ -31,7 +31,7 @@
             }
         ]
     },
-    "shortName": "De Lijn (test)",
+    "shortName": "De Lijn",
     "uuid": "6e084364-a418-4a53-9c05-2a0bcdd220b9",
     "versionCode": 1,
     "versionLabel": "1.0",

@@ -167,7 +167,7 @@ void main_window_load(Window *window){
 	app_message_register_outbox_failed(main_out_failed_handler);
 
 	const uint32_t inbound_size = app_message_inbox_size_maximum();
-	const uint32_t outbound_size = 64;
+	const uint32_t outbound_size = app_message_outbox_size_maximum();
 	app_message_open(inbound_size, outbound_size);
 	
 	// Check Bluetooth connection

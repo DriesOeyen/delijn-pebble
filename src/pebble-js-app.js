@@ -38,32 +38,38 @@ Pebble.addEventListener('ready', function(e){
 		]);
 		++i;
 	}
+	console.log("Loaded " + i + " stops from localStorage");
 	
 	// Send stops to watch
-	console.log("Loaded " + i + " stops from localStorage");
-	if(stops.length > 0){
-		sendStop(0, true);
-	} else{
-		sendError(error_empty);
-	}
+	sendStops();
 });
 
 Pebble.addEventListener('showConfiguration', function(e){
 	console.log("Opened configuration screen on phone");
-	Pebble.openURL('http://nexworx.com/pebble/delijn/configure.html#' + encodeURIComponent(JSON.stringify(stops)));
+	Pebble.openURL('http://nexworx.com/pebble/delijn/configure.html?' + encodeURIComponent(JSON.stringify(stops)));
 });
 
 Pebble.addEventListener('webviewclosed', function(e){
-	if(e.response !== null){
-		stops = JSON.parse(decodeURIComponent(e.response));
+	var stops_new = JSON.parse(decodeURIComponent(e.response));
+	if(stops_new.length !== undefined){
+		stops = stops_new;
 		console.log("User is saving " + stops.length + " stops.");
-		localStorage.clear();
+		
+		// Clear old items
 		var i = 0;
+		while(i < localStorage.length/3){
+			localStorage.removeItem('stop' + i + '_stopId');
+			localStorage.removeItem('stop' + i + '_lijnId');
+			localStorage.removeItem('stop' + i + '_name');
+			++i;
+		}
+		
+		// Save new items
+		i = 0;
 		while(i < stops.length){
 			localStorage.setItem('stop' + i + '_stopId', stops[i][1]);
 			localStorage.setItem('stop' + i + '_lijnId', stops[i][2]);
 			localStorage.setItem('stop' + i + '_name', toTitleCase(stops[i][3]));
-			console.log("Saving stop " + stops[i][0] + ": stopId " + stops[i][1] + ", lijnId " + stops[i][2] + ", name " + stops[i][3]);
 			++i;
 		}
 	} else{
@@ -102,6 +108,14 @@ var xhrRequest = function (url, type, callback){
 	xhr.open(type, url);
 	xhr.send();
 };
+
+function sendStops(){
+	if(stops.length > 0){
+		sendStop(0, true);
+	} else{
+		sendError(error_empty);
+	}
+}
 
 function sendSchedule(stop){
 	// Send name of stop
