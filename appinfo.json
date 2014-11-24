@@ -1,0 +1,41 @@
+{
+    "appKeys": {
+        "KEY_BUS_DESTINATION": 3,
+        "KEY_BUS_ETA": 4,
+        "KEY_BUS_LIJNID": 2,
+        "KEY_ERROR": 1,
+        "KEY_STOP_ID": 5,
+        "KEY_STOP_LIJNID": 7,
+        "KEY_STOP_NAME": 8,
+        "KEY_STOP_STOPID": 6,
+        "KEY_TYPE": 0
+    },
+    "capabilities": [
+        "configurable"
+    ],
+    "companyName": "Nexworx",
+    "longName": "De Lijn",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "images/icon.png",
+                "menuIcon": true,
+                "name": "IMAGE_POLE",
+                "type": "png"
+            },
+            {
+                "file": "images/stop.png",
+                "name": "IMAGE_NODE",
+                "type": "png"
+            }
+        ]
+    },
+    "shortName": "De Lijn",
+    "uuid": "6e084364-a418-4a53-9c05-2a0bcdd220b9",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
