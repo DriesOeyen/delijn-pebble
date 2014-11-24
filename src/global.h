@@ -2,6 +2,7 @@
 
 #include <pebble.h>
 #include "list.h"
+#include "strap/strap.h"
 
 #define KEY_TYPE 0
 #define KEY_ERROR 1

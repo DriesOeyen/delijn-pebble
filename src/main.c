@@ -131,7 +131,7 @@ void main_menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, voi
 	}
 }
 
-// Init window
+// Load window
 void main_window_load(Window *window){
 	// Init bus stop icon
 	menu_icon_stop = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_NODE);
@@ -159,7 +159,26 @@ void main_window_load(Window *window){
 	// Bind menu
 	menu_layer_set_click_config_onto_window(main_menu_layer, window);
 	layer_add_child(window_layer, menu_layer_get_layer(main_menu_layer));
+}
 
+// Unload window
+void main_window_unload(Window *window){
+	app_message_deregister_callbacks();
+	menu_layer_destroy(main_menu_layer);
+	list_free_all(&main_menu_items);
+	gbitmap_destroy(menu_icon_stop);
+}
+
+// Init
+void init(){
+	// Init window
+	main_window = window_create();
+	window_set_window_handlers(main_window, (WindowHandlers) {
+		.load = main_window_load,
+		.unload = main_window_unload,
+	});
+	window_stack_push(main_window, true);
+	
 	// Init AppMessage
 	app_message_register_inbox_received(main_in_received_handler);
 	app_message_register_inbox_dropped(main_in_dropped_handler);
@@ -169,6 +188,9 @@ void main_window_load(Window *window){
 	const uint32_t inbound_size = app_message_inbox_size_maximum();
 	const uint32_t outbound_size = app_message_outbox_size_maximum();
 	app_message_open(inbound_size, outbound_size);
+	
+	// Init Strap
+	strap_init();
 	
 	// Check Bluetooth connection
 	if(!bluetooth_connection_service_peek()){
@@ -187,26 +209,15 @@ void main_window_load(Window *window){
 	}
 }
 
-// Deinit window
-void main_window_unload(Window *window){
-	app_message_deregister_callbacks();
-	menu_layer_destroy(main_menu_layer);
-	list_free_all(&main_menu_items);
-	gbitmap_destroy(menu_icon_stop);
+// Deinit
+void deinit(){
+	strap_deinit();
+	window_destroy(main_window);
 }
 
+// Main
 int main(void){
-	// Init
-	main_window = window_create();
-	window_set_window_handlers(main_window, (WindowHandlers) {
-		.load = main_window_load,
-		.unload = main_window_unload,
-	});
-	window_stack_push(main_window, true);
-
-	// Running
+	init();
 	app_event_loop();
-
-	// Deinit
-	window_destroy(main_window);
+	deinit();
 }

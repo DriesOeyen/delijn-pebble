@@ -179,6 +179,11 @@ void schedule_window_load(Window *window){
 
 // Deinit schedule window
 void schedule_window_unload(Window *window){
+	// Log to Strap that user has been here
+	// This function is here because it clashes with request_schedule
+	strap_log_event("/select/schedule");
+	
+	// Deinit
 	app_message_deregister_callbacks();
 	menu_layer_destroy(schedule_menu_layer);
 	list_free_all(&schedule_menu_items);

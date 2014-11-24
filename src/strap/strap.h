@@ -6,7 +6,7 @@
 #define STRAP_FREQ_LOW      3  // least data collection, lowest power drain
 #define STRAP_OPT_OUT 49888
 
-// #define DISABLE_ACCL 
+#define DISABLE_ACCL 
 
 // #define DEBUG
   

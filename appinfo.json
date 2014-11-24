@@ -19,14 +19,14 @@
     "resources": {
         "media": [
             {
-                "file": "images/stop.png",
-                "name": "IMAGE_NODE",
-                "type": "png"
-            },
-            {
                 "file": "images/icon.png",
                 "menuIcon": true,
                 "name": "IMAGE_POLE",
+                "type": "png"
+            },
+            {
+                "file": "images/stop.png",
+                "name": "IMAGE_NODE",
                 "type": "png"
             }
         ]
