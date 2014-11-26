@@ -11,7 +11,7 @@ void main_out_sent_handler(DictionaryIterator *sent, void *context){
 
 // Outgoing NACK
 void main_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason, void *context){
-	APP_LOG(APP_LOG_LEVEL_ERROR, "Error sending message (%d)", reason);
+	APP_LOG(APP_LOG_LEVEL_ERROR, "Error sending message (%s)", translate_error(reason));
 }
 
 // Incoming ACK
@@ -31,8 +31,12 @@ void main_in_received_handler(DictionaryIterator *received, void *context){
 			menu_item = malloc(sizeof(menu_item_t));
 			if(menu_item != NULL){
 				// Parse incoming data
-				snprintf(menu_item->title, MAX_STR_LENGTH, "Lijn %d", tup_stop_lijnid->value->uint16);
-				snprintf(menu_item->subtitle, MAX_STR_LENGTH, "%s", tup_stop_name->value->cstring);
+				snprintf(menu_item->title, MAX_STR_LENGTH, "%s", tup_stop_name->value->cstring);
+				if(tup_stop_lijnid->value->int16 == -1){
+					snprintf(menu_item->subtitle, MAX_STR_LENGTH, "Alle lijnen");
+				} else{
+					snprintf(menu_item->subtitle, MAX_STR_LENGTH, "Lijn %d", tup_stop_lijnid->value->int16);
+				}
 				// Add to menu items and reload menu
 				list_insert_at_index(main_menu_items, menu_item, tup_stop_id->value->uint8);
 				num_main_menu_items++;
@@ -62,19 +66,17 @@ void main_in_received_handler(DictionaryIterator *received, void *context){
 					break;
 				default:
 					APP_LOG(APP_LOG_LEVEL_ERROR, "Received unknown error code from JS app (%d)", tup_error->value->int8);
-					break;
 			}
 			break;
 		
 		default:
 			APP_LOG(APP_LOG_LEVEL_ERROR, "Received message with unknown type (%d)", tup_type->value->int8);
-			break;
 	}
 }
 
 // Incoming NACK
 void main_in_dropped_handler(AppMessageResult reason, void *context){
-	APP_LOG(APP_LOG_LEVEL_ERROR, "Error receiving message (%d)", reason);
+	APP_LOG(APP_LOG_LEVEL_ERROR, "Error receiving message (%s)", translate_error(reason));
 }
 
 
@@ -105,6 +107,8 @@ static void main_menu_draw_header_callback(GContext* ctx, const Layer *cell_laye
 		case 0: // First section
 			menu_cell_basic_header_draw(ctx, cell_layer, "Mijn lijnen");
 			break;
+		default:
+			APP_LOG(APP_LOG_LEVEL_ERROR, "Attempted to draw unknown header: %d", section_index);
 	}
 }
 
@@ -189,9 +193,6 @@ void init(){
 	const uint32_t outbound_size = app_message_outbox_size_maximum();
 	app_message_open(inbound_size, outbound_size);
 	
-	// Init Strap
-	strap_init();
-	
 	// Check Bluetooth connection
 	if(!bluetooth_connection_service_peek()){
 		// No connection
@@ -211,7 +212,6 @@ void init(){
 
 // Deinit
 void deinit(){
-	strap_deinit();
 	window_destroy(main_window);
 }
 

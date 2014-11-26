@@ -11,7 +11,7 @@ void schedule_out_sent_handler(DictionaryIterator *sent, void *context){
 
 // Outgoing NACK
 void schedule_out_failed_handler(DictionaryIterator *failed, AppMessageResult reason, void *context){
-	APP_LOG(APP_LOG_LEVEL_ERROR, "Error sending message (%d)", reason);
+	APP_LOG(APP_LOG_LEVEL_ERROR, "Error sending message (%s)", translate_error(reason));
 }
 
 // Incoming ACK
@@ -23,6 +23,7 @@ void schedule_in_received_handler(DictionaryIterator *received, void *context){
 	switch(tup_type->value->int8){
 		case(VALUE_TYPE_BUS):
 			APP_LOG(APP_LOG_LEVEL_DEBUG, "Type of message: bus");
+			Tuple *tup_bus_lijnid = dict_find(received, KEY_BUS_LIJNID);
 			Tuple *tup_bus_destination = dict_find(received, KEY_BUS_DESTINATION);
 			Tuple *tup_bus_eta = dict_find(received, KEY_BUS_ETA);
 			// Add to list of menu items
@@ -30,7 +31,7 @@ void schedule_in_received_handler(DictionaryIterator *received, void *context){
 			if(menu_item != NULL){
 				// Parse incoming data
 				snprintf(menu_item->title, MAX_STR_LENGTH, "%s", tup_bus_destination->value->cstring);
-				snprintf(menu_item->subtitle, MAX_STR_LENGTH, "%s", tup_bus_eta->value->cstring);
+				snprintf(menu_item->subtitle, MAX_STR_LENGTH, "Lijn %s – %s", tup_bus_lijnid->value->cstring, tup_bus_eta->value->cstring);
 				// Add to menu items and reload menu
 				list_insert_at_index(schedule_menu_items, menu_item, num_schedule_menu_items);
 				num_schedule_menu_items++;
@@ -79,21 +80,33 @@ void schedule_in_received_handler(DictionaryIterator *received, void *context){
 						APP_LOG(APP_LOG_LEVEL_ERROR, "Couldn't allocate memory for menu item");
 					}
 					break;
+				case(ERROR_UNKNOWN):
+					// No such stop
+					menu_item = malloc(sizeof(menu_item_t));
+					if(menu_item != NULL){
+						snprintf(menu_item->title, MAX_STR_LENGTH, "Halte verwijderd");
+						snprintf(menu_item->subtitle, MAX_STR_LENGTH, "De halte is uit je lijst verwijderd");
+						// Add to menu items and reload menu
+						list_insert_at_index(schedule_menu_items, menu_item, num_schedule_menu_items);
+						num_schedule_menu_items++;
+						menu_layer_reload_data(schedule_menu_layer);
+					} else{
+						APP_LOG(APP_LOG_LEVEL_ERROR, "Couldn't allocate memory for menu item");
+					}
+					break;
 				default:
 					APP_LOG(APP_LOG_LEVEL_ERROR, "Received unknown error code from JS app (%d)", tup_error->value->int8);
-					break;
 			}
 			break;
 		
 		default:
 			APP_LOG(APP_LOG_LEVEL_ERROR, "Received message with unknown type (%d)", tup_type->value->int8);
-			break;
 	}
 }
 
 // Incoming NACK
 void schedule_in_dropped_handler(AppMessageResult reason, void *context){
-	APP_LOG(APP_LOG_LEVEL_ERROR, "Error receiving message (%d)", reason);
+	APP_LOG(APP_LOG_LEVEL_ERROR, "Error receiving message (%s)", translate_error(reason));
 }
 
 // Request schedule
@@ -131,7 +144,13 @@ static int16_t schedule_menu_get_header_height_callback(MenuLayer *menu_layer, u
 
 // Draw header
 static void schedule_menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, uint16_t section_index, void *data){
-	menu_cell_basic_header_draw(ctx, cell_layer, schedule_stop_name);
+	switch(section_index){
+		case 0: // First section
+			menu_cell_basic_header_draw(ctx, cell_layer, schedule_stop_name);
+			break;
+		default:
+			APP_LOG(APP_LOG_LEVEL_ERROR, "Attempted to draw unknown header: %d", section_index);
+	}
 }
 
 // Draw item
@@ -179,11 +198,6 @@ void schedule_window_load(Window *window){
 
 // Deinit schedule window
 void schedule_window_unload(Window *window){
-	// Log to Strap that user has been here
-	// This function is here because it clashes with request_schedule
-	strap_log_event("/select/schedule");
-	
-	// Deinit
 	app_message_deregister_callbacks();
 	menu_layer_destroy(schedule_menu_layer);
 	list_free_all(&schedule_menu_items);
