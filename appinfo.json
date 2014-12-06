@@ -34,7 +34,7 @@
     "shortName": "De Lijn",
     "uuid": "6e084364-a418-4a53-9c05-2a0bcdd220b9",
     "versionCode": 1,
-    "versionLabel": "1.1",
+    "versionLabel": "1.2",
     "watchapp": {
         "watchface": false
     }

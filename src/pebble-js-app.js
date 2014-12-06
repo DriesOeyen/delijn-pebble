@@ -7,8 +7,10 @@ var value_type_error = 2;
 var error_empty = 0;
 var error_connection = 1;
 var error_unknown = 2;
+var error_outdated = 3;
 
 var stops = [];
+var stops_ready = false;
 
 
 
@@ -28,6 +30,7 @@ Pebble.addEventListener('ready', function(e){
 		]);
 		++i;
 	}
+	stops_ready = true;
 	console.log("Loaded " + i + " stops from localStorage");
 	
 	// Send stops to watch
@@ -35,8 +38,7 @@ Pebble.addEventListener('ready', function(e){
 });
 
 Pebble.addEventListener('showConfiguration', function(e){
-	console.log("Opened configuration screen on phone");
-	Pebble.openURL('http://nexworx.com/pebble/delijn/configure.html?' + encodeURIComponent(JSON.stringify(stops)));
+	openConfiguration();
 });
 
 Pebble.addEventListener('webviewclosed', function(e){
@@ -62,6 +64,11 @@ Pebble.addEventListener('webviewclosed', function(e){
 			localStorage.setItem('stop' + i + '_name', toTitleCase(stops[i][3]));
 			++i;
 		}
+		
+		// Reload stops on Pebble
+		sendError(error_outdated, function(){
+			sendStops();
+		});
 	} else{
 		console.log("Configuration screen cancelled");
 	}
@@ -92,13 +99,23 @@ Pebble.addEventListener('appmessage', function(e){
 
 // FUNCTIONS
 
+function openConfiguration(){
+	// Open configuration screen if the stops are loaded
+	if(stops_ready){
+		console.log("Opened configuration screen on phone");
+		Pebble.openURL('http://nexworx.com/pebble/delijn/configure.html?' + encodeURIComponent(JSON.stringify(stops)));
+	} else{
+		setTimeout(function(){ openConfiguration(); },100);
+	}
+}
+
 var xhrRequest = function (url, type, callback){
 	var xhr = new XMLHttpRequest();
 	xhr.onload = function () {
 		callback(this.responseText);
 	};
 	xhr.timeout = 10000;
-    xhr.ontimeout = function () { 
+	xhr.ontimeout = function () { 
 		sendError(error_connection);
 	};
 	xhr.open(type, url);
@@ -131,6 +148,8 @@ function sendSchedule(stop, request_quantity){
 			if(json.lijnen.length < 4 && request_quantity < 40){
 				console.log("Only fetched " + json.lijnen.length + " buses of interest. Requesting more.");
 				sendSchedule(stop, request_quantity+10);
+			} else if(json.lijnen.length === 0){
+				sendError(error_empty);
 			} else{
 				console.log("Fetched " + json.lijnen.length + " buses of interest. Sending to Pebble.");
 				sendBus(json, 0, true);
