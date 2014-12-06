@@ -20,6 +20,7 @@
 #define ERROR_EMPTY 0
 #define ERROR_CONNECTION 1
 #define ERROR_UNKNOWN 2
+#define ERROR_OUTDATED 3
 
 #define MAX_STR_LENGTH 30
 

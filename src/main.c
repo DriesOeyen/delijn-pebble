@@ -64,6 +64,14 @@ void main_in_received_handler(DictionaryIterator *received, void *context){
 						APP_LOG(APP_LOG_LEVEL_ERROR, "Couldn't allocate memory for menu item");
 					}
 					break;
+				case(ERROR_OUTDATED):
+					APP_LOG(APP_LOG_LEVEL_DEBUG, "Data outdated, drop stops and wait for new data");
+					list_free_all(&main_menu_items);
+					main_menu_items = list_alloc();
+					num_main_menu_items = 0;
+					main_menu_enable = 0;
+					menu_layer_reload_data(main_menu_layer);
+					break;
 				default:
 					APP_LOG(APP_LOG_LEVEL_ERROR, "Received unknown error code from JS app (%d)", tup_error->value->int8);
 			}
@@ -167,7 +175,6 @@ void main_window_load(Window *window){
 
 // Unload window
 void main_window_unload(Window *window){
-	app_message_deregister_callbacks();
 	menu_layer_destroy(main_menu_layer);
 	list_free_all(&main_menu_items);
 	gbitmap_destroy(menu_icon_stop);
@@ -212,6 +219,7 @@ void init(){
 
 // Deinit
 void deinit(){
+	app_message_deregister_callbacks();
 	window_destroy(main_window);
 }
 
