@@ -12,6 +12,8 @@ var error_outdated = 3;
 var stops = [];
 var stops_ready = false;
 
+var storage_version_newest = 2;
+
 
 
 // EVENT LISTENERS
@@ -19,9 +21,22 @@ var stops_ready = false;
 Pebble.addEventListener('ready', function(e){
 	console.log("PebbleKit JS ready!");
 	
+	// Check storage version
+	var storage_version_current = parseInt(localStorage.getItem('version'));
+	if(localStorage.length === 0){
+		storage_version_current = 0;
+	} else if(isNaN(storage_version_current)){
+		storage_version_current = 1;
+	}
+	
+	if(storage_version_current != storage_version_newest){
+		upgradeStorage(storage_version_current);
+	}
+	
 	// Load stops from storage
 	var i = 0;
-	while(localStorage.getItem('stop' + i + '_stopId') !== null){
+	var n = parseInt(localStorage.getItem('stops'));
+	while(i < n){
 		stops.push([
 			i,
 			parseInt(localStorage.getItem('stop' + i + '_stopId')),
@@ -31,7 +46,7 @@ Pebble.addEventListener('ready', function(e){
 		++i;
 	}
 	stops_ready = true;
-	console.log("Loaded " + i + " stops from localStorage");
+	console.log("Loaded " + i + " of " + n + " stops from localStorage");
 	
 	// Send stops to watch
 	sendStops();
@@ -42,26 +57,32 @@ Pebble.addEventListener('showConfiguration', function(e){
 });
 
 Pebble.addEventListener('webviewclosed', function(e){
+	stops_ready = false;
+	
 	var stops_new = JSON.parse(decodeURIComponent(e.response));
 	if(stops_new.length !== undefined){
 		stops = stops_new;
-		console.log("User is saving " + stops.length + " stops.");
+		var n = stops.length;
+		console.log("User is saving " + n + " stops.");
 		
 		// Clear old items
-		var i = 0;
-		while(i < localStorage.length/3){
-			localStorage.removeItem('stop' + i + '_stopId');
-			localStorage.removeItem('stop' + i + '_lijnId');
-			localStorage.removeItem('stop' + i + '_name');
-			++i;
-		}
+		localStorage.clear();
 		
-		// Save new items
-		i = 0;
-		while(i < stops.length){
+		// Parse and save new items
+		var i = 0;
+		localStorage.setItem('stops', n);
+		localStorage.setItem('version', storage_version_newest);
+		while(i < n){
+			// Save to localStorage
 			localStorage.setItem('stop' + i + '_stopId', stops[i][1]);
 			localStorage.setItem('stop' + i + '_lijnId', stops[i][2]);
-			localStorage.setItem('stop' + i + '_name', toTitleCase(stops[i][3]));
+			localStorage.setItem('stop' + i + '_name', stops[i][3]);
+			
+			// Parse integers in new stops array
+			stops[i][0] = i;
+			stops[i][1] = parseInt(stops[i][1]);
+			stops[i][2] = parseInt(stops[i][2]);
+			
 			++i;
 		}
 		
@@ -72,6 +93,8 @@ Pebble.addEventListener('webviewclosed', function(e){
 	} else{
 		console.log("Configuration screen cancelled");
 	}
+	
+	stops_ready = true;
 });
 
 Pebble.addEventListener('appmessage', function(e){
@@ -98,6 +121,26 @@ Pebble.addEventListener('appmessage', function(e){
 
 
 // FUNCTIONS
+
+function upgradeStorage(version){
+	console.log("Upgrading localStorage from version " + version + " to " + storage_version_newest);
+	switch(version){
+		case(0): // New users
+			localStorage.setItem('stops', 0);
+			localStorage.setItem('version', storage_version_newest);
+			break;
+		case(1): // Storage version 1
+			var n = localStorage.length/3;
+			localStorage.setItem('stops', n);
+			localStorage.setItem('version', storage_version_newest);
+			break;
+		default: // Unknown storage version
+			localStorage.clear();
+			localStorage.setItem('stops', 0);
+			localStorage.setItem('version', storage_version_newest);
+			Pebble.showSimpleNotificationOnPebble("Haltes verwijderd", "Door een fout zijn je opgeslagen haltes verwijderd. Voeg ze opnieuw toe via de Pebble app.");
+	}
+}
 
 function openConfiguration(){
 	// Open configuration screen if the stops are loaded
