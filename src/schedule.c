@@ -188,8 +188,11 @@ void schedule_window_load(Window *window){
 	// Bind menu
 	menu_layer_set_click_config_onto_window(schedule_menu_layer, window);
 	layer_add_child(window_layer, menu_layer_get_layer(schedule_menu_layer));
+}
 
-	// Init AppMessage
+// Window appears
+void schedule_window_appear(Window *window){
+	// Reset AppMessage callbacks
 	app_message_register_inbox_received(schedule_in_received_handler);
 	app_message_register_inbox_dropped(schedule_in_dropped_handler);
 	app_message_register_outbox_sent(schedule_out_sent_handler);
@@ -198,18 +201,25 @@ void schedule_window_load(Window *window){
 
 // Deinit schedule window
 void schedule_window_unload(Window *window){
-	app_message_deregister_callbacks();
 	menu_layer_destroy(schedule_menu_layer);
 	list_free_all(&schedule_menu_items);
 	window_destroy(schedule_window);
 }
 
+// Window disappears
+void schedule_window_disappear(Window *window){
+	app_message_deregister_callbacks();
+}
+
+// Init window
 void show_schedule(int id){
 	request_schedule(id);
 	schedule_window = window_create();
 	window_set_window_handlers(schedule_window, (WindowHandlers) {
 		.load = schedule_window_load,
+		.appear = schedule_window_appear,
 		.unload = schedule_window_unload,
+		.disappear = schedule_window_disappear,
 	});
 	window_stack_push(schedule_window, true);
 }

@@ -173,32 +173,13 @@ void main_window_load(Window *window){
 	layer_add_child(window_layer, menu_layer_get_layer(main_menu_layer));
 }
 
-// Unload window
-void main_window_unload(Window *window){
-	menu_layer_destroy(main_menu_layer);
-	list_free_all(&main_menu_items);
-	gbitmap_destroy(menu_icon_stop);
-}
-
-// Init
-void init(){
-	// Init window
-	main_window = window_create();
-	window_set_window_handlers(main_window, (WindowHandlers) {
-		.load = main_window_load,
-		.unload = main_window_unload,
-	});
-	window_stack_push(main_window, true);
-	
-	// Init AppMessage
+// Window appears
+void main_window_appear(Window *window){
+	// Reset AppMessage callbacks
 	app_message_register_inbox_received(main_in_received_handler);
 	app_message_register_inbox_dropped(main_in_dropped_handler);
 	app_message_register_outbox_sent(main_out_sent_handler);
 	app_message_register_outbox_failed(main_out_failed_handler);
-
-	const uint32_t inbound_size = app_message_inbox_size_maximum();
-	const uint32_t outbound_size = app_message_outbox_size_maximum();
-	app_message_open(inbound_size, outbound_size);
 	
 	// Check Bluetooth connection
 	if(!bluetooth_connection_service_peek()){
@@ -217,9 +198,43 @@ void init(){
 	}
 }
 
+// Unload window
+void main_window_unload(Window *window){
+	menu_layer_destroy(main_menu_layer);
+	list_free_all(&main_menu_items);
+	gbitmap_destroy(menu_icon_stop);
+}
+
+// Window disappears
+void main_window_disappear(Window *window){
+	app_message_deregister_callbacks();
+}
+
+// Init
+void init(){
+	// Init window
+	main_window = window_create();
+	window_set_window_handlers(main_window, (WindowHandlers) {
+		.load = main_window_load,
+		.appear = main_window_appear,
+		.unload = main_window_unload,
+		.disappear = main_window_disappear,
+	});
+	window_stack_push(main_window, true);
+	
+	// Init AppMessage
+	app_message_register_inbox_received(main_in_received_handler);
+	app_message_register_inbox_dropped(main_in_dropped_handler);
+	app_message_register_outbox_sent(main_out_sent_handler);
+	app_message_register_outbox_failed(main_out_failed_handler);
+
+	const uint32_t inbound_size = app_message_inbox_size_maximum();
+	const uint32_t outbound_size = app_message_outbox_size_maximum();
+	app_message_open(inbound_size, outbound_size);
+}
+
 // Deinit
 void deinit(){
-	app_message_deregister_callbacks();
 	window_destroy(main_window);
 }
 
