@@ -21,6 +21,7 @@
 #define ERROR_CONNECTION 1
 #define ERROR_UNKNOWN 2
 #define ERROR_OUTDATED 3
+#define ERROR_REMOTE 4
 
 #define MAX_STR_LENGTH 30
 
