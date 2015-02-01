@@ -80,6 +80,20 @@ void schedule_in_received_handler(DictionaryIterator *received, void *context){
 						APP_LOG(APP_LOG_LEVEL_ERROR, "Couldn't allocate memory for menu item");
 					}
 					break;
+				case(ERROR_REMOTE):
+					// Error with De Lijn API
+					menu_item = malloc(sizeof(menu_item_t));
+					if(menu_item != NULL){
+						snprintf(menu_item->title, MAX_STR_LENGTH, "Fout bij De Lijn");
+						snprintf(menu_item->subtitle, MAX_STR_LENGTH, "Doorkomsten kunnen niet opgehaald worden");
+						// Add to menu items and reload menu
+						list_insert_at_index(schedule_menu_items, menu_item, num_schedule_menu_items);
+						num_schedule_menu_items++;
+						menu_layer_reload_data(schedule_menu_layer);
+					} else{
+						APP_LOG(APP_LOG_LEVEL_ERROR, "Couldn't allocate memory for menu item");
+					}
+					break;
 				case(ERROR_UNKNOWN):
 					// No such stop
 					menu_item = malloc(sizeof(menu_item_t));

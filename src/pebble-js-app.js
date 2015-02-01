@@ -8,6 +8,7 @@ var error_empty = 0;
 var error_connection = 1;
 var error_unknown = 2;
 var error_outdated = 3;
+var error_remote = 4;
 
 var stops = [];
 var stops_ready = false;
@@ -158,8 +159,13 @@ var xhrRequest = function (url, type, callback){
 		callback(this.responseText);
 	};
 	xhr.timeout = 10000;
-	xhr.ontimeout = function () { 
+	xhr.ontimeout = function () {
+		console.log("Connection to De Lijn timed out");
 		sendError(error_connection);
+	};
+	xhr.onerror = function() {
+		console.log("De Lijn web API is down");
+		sendError(error_remote);
 	};
 	xhr.open(type, url);
 	xhr.send();
@@ -175,7 +181,7 @@ function sendStops(){
 
 function sendSchedule(stop, request_quantity){
 	console.log('Requesting ' + request_quantity + ' buses for stop ' + stop[1]);
-	var url = 'http://reisinfo.delijn.be/rise-api-web/haltes/vertrekken/' + stop[1] + '/' + request_quantity;
+	var url = 'http://www.delijn.be/rise-api-web/haltes/vertrekken/' + stop[1] + '/' + request_quantity;
 	xhrRequest(url, 'GET', function(responseText){
 		var json = JSON.parse(responseText);
 		// De Lijn data received, parse and send data
