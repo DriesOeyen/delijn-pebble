@@ -147,7 +147,7 @@ function openConfiguration(){
 	// Open configuration screen if the stops are loaded
 	if(stops_ready){
 		console.log("Opened configuration screen on phone");
-		Pebble.openURL('http://nexworx.com/pebble/delijn/configure.html?' + encodeURIComponent(JSON.stringify(stops)));
+		Pebble.openURL('https://nexworx.com/pebble/delijn/configure.html?' + encodeURIComponent(JSON.stringify(stops)));
 	} else{
 		setTimeout(function(){ openConfiguration(); },100);
 	}
