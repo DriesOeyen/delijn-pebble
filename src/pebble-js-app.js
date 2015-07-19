@@ -147,7 +147,7 @@ function openConfiguration(){
 	// Open configuration screen if the stops are loaded
 	if(stops_ready){
 		console.log("Opened configuration screen on phone");
-		Pebble.openURL('http://nexworx.com/pebble/delijn/configure.html?' + encodeURIComponent(JSON.stringify(stops)));
+		Pebble.openURL('https://nexworx.com/pebble/delijn/configure.html?' + encodeURIComponent(JSON.stringify(stops)));
 	} else{
 		setTimeout(function(){ openConfiguration(); },100);
 	}
@@ -181,7 +181,7 @@ function sendStops(){
 
 function sendSchedule(stop, request_quantity){
 	console.log('Requesting ' + request_quantity + ' buses for stop ' + stop[1]);
-	var url = 'http://www.delijn.be/rise-api-web/haltes/vertrekken/' + stop[1] + '/' + request_quantity;
+	var url = 'https://www.delijn.be/rise-api-core/haltes/vertrekken/' + stop[1] + '/' + request_quantity;
 	xhrRequest(url, 'GET', function(responseText){
 		var json = JSON.parse(responseText);
 		// De Lijn data received, parse and send data
