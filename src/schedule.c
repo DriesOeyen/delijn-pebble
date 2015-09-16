@@ -178,6 +178,18 @@ static void schedule_menu_draw_row_callback(GContext* ctx, const Layer *cell_lay
 	}
 }
 
+// Handle select button push
+void schedule_menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data){
+	// Refresh schedule
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "User refreshed stop %d", schedule_stop_id);
+	list_free_all(&schedule_menu_items);
+	schedule_menu_items = list_alloc();
+	num_schedule_menu_items = 0;
+	menu_layer_reload_data(schedule_menu_layer);
+	
+	request_schedule(schedule_stop_id);
+}
+
 // Init schedule window
 void schedule_window_load(Window *window){
 	// Init menu
@@ -192,6 +204,7 @@ void schedule_window_load(Window *window){
 		.get_header_height = schedule_menu_get_header_height_callback,
 		.draw_header = schedule_menu_draw_header_callback,
 		.draw_row = schedule_menu_draw_row_callback,
+		.select_click = schedule_menu_select_callback,
 	});
 	
 	// Init menu items list
@@ -227,7 +240,8 @@ void schedule_window_disappear(Window *window){
 
 // Init window
 void show_schedule(int id){
-	request_schedule(id);
+	schedule_stop_id = id;
+	request_schedule(schedule_stop_id);
 	schedule_window = window_create();
 	window_set_window_handlers(schedule_window, (WindowHandlers) {
 		.load = schedule_window_load,
