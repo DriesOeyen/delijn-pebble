@@ -5,6 +5,7 @@
 #define NUM_SCHEDULE_MENU_SECTIONS 1
 int num_schedule_menu_items;
 list_ptr_t schedule_menu_items;
+int schedule_stop_id;
 char schedule_stop_name[MAX_STR_LENGTH];
 
 static Window *schedule_window;
